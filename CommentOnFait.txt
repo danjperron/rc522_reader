@@ -1,0 +1,76 @@
+1- Compilez le code source
+
+   cd ~
+   cd rc522_reader
+   make
+   
+2- Créez un lien symbolique pour pouvoir exécuter rc522_reader 
+
+   sudo ln -s /home/pi/rc522_reader/rc522_reader /usr/local/bin/rc522_reader
+
+  
+3- Créez un répertoire pour contenir la périphérique tuyau en mémoire vive.
+   Cela va éviter l'usure prématurée de la carte SD.
+
+   sudo mkdir /myfifo
+   sudo chmod 777 /myfifo
+   
+4- Ajoutez une ligne de command dans /etc/fstab pour une répertoire en mémoire vive de 10K
+
+   sudo nano /etc/fstab
+   tmpfs           /myfifo               tmpfs   rw,mode=1777,size=10k  1  0
+   
+
+5- Insérez une ligne de commande dans /etc/rc.local pour démarrer un fichier tuyau au démarrage.
+
+     mkfifo -m 777 /myfifo/fifoRFID    (P.S. juste avant le exit. Pas après)
+     
+6- Reboot Raspberry Pi
+
+
+7- Copiez RC522.conf dans /etc/RC522.conf
+
+    sudo cp /home/pi/rc522_reader/RC522.conf /etc/fstab
+    
+    P.S.  Seulement root a accès. pour pi il faut changer l'usagé
+    
+    sudo chown 777 /etc/RC522.conf
+    
+8- Maintenant il faut savoir le code UID de chaque carte.
+   L'utilisation de rc522_reader en debug va permettre de trouver le code UID.
+
+   rc522_reader -debug
+   
+9- Approchez les clefs RFID une à la fois et enregistrer le UID.
+
+10-Editez /etc/RC522.conf et ajoutez l'UID des clefs avec les fonctions qu'il vont faire.
+
+    Le mode vidéo passe les commandes dans le fifo.
+        
+    echo -n videofilename.mp4 >/myfifo/fifoRFID
+    
+    Seulement 3 commandes sont decodées dans le script python
+       echo -n seek30s >/myfifo/fifoRFID
+       echo -n pause >/myfifo/fifoRFID
+       echo -n quit >/myfifo/RFID
+       
+     Le script python playerOnRFID.py ntercepte l'information envoyé au fifo et execute la commande appropriée.
+     
+     
+11- Modifiez les scripts suivant pour qu'ils soient exécutable.
+
+    cd 
+    cd rc522_reader
+    sudo cp playerOnRFID.py /usr/local/bin/
+    sudo cp playerOnRFID /usr/local/bin/
+    sudo cp killplayer /usr/local/bin/
+    cd /usr/local/bin
+    sudo chmod +x playerOnRFID*
+    sudo chmod +x killplayer
+    
+    
+12- Pour partir la reconnaissance RFID et le mode vidéo exécutez  playerOnRFID
+13- pour arrêter le système  utilisez la commande killplayer
+
+
+

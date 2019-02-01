@@ -1,0 +1,3 @@
+#!/bin/bash
+
+rc522_reader & python playerOnRFID.py

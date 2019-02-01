@@ -1,0 +1,3 @@
+#!/bin/bash
+killall rc522_reader
+pkill -f playerOnRFID.py

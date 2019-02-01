@@ -1,0 +1,69 @@
+1- Compile
+
+   cd ~
+   cd rc522_reader
+   make
+   
+2- Create a link or copy rc522_reader to /usr/local/bin
+
+   sudo ln -s /home/pi/rc522_reader/rc522_reader /usr/local/bin/rc522_reader
+
+  
+3- Create a tmpfs folder  for ramdisk access. This will limit the wear out of the SDCard
+
+   sudo mkdir /myfifo
+   sudo chmod 777 /myfifo
+   
+4- Add a line into /etc/fstab to create a tmpfs folder on boot
+tmpfs           /myfifo               tmpfs   rw,mode=1777,size=10k  1  0
+
+5- On boot we will need to create a  fifo pipe. Just need to add the commands into /etc/rc.local/bin
+
+     mkfifo -m 777 /myfifo/fifoRFID
+     
+6- Reboot Raspberry Pi
+
+
+7- We need to set the config for the RC522-reader. copy the RC522.conf  to /etc/fstab
+
+    sudo cp /home/pi/rc522_reader/RC522.conf /etc/fstab
+    
+    P.S.  only root could modify the config file.
+    you could change it by using chown
+    sudo chown 777 /etc/RC522.conf
+    
+8- We need to get the UID of the tags. start rc22_reader in debug mode
+
+   rc522_reader -debug
+   
+9- approach all tags to the RC-522 reader and store the UID
+
+10- now edit /etc/RC522.conf and add the RFID tags in bracket with the action you want to do with it
+
+    For video use the commands 
+    
+    echo -n videofilename.mp4 >/myfifo/fifoRFID
+    
+    Only 3 commands are decoded
+       echo -n seek30s >/myfifo/fifoRFID
+       echo -n pause >/myfifo/fifoRFID
+       echo -n quit >/myfifo/RFID
+       
+11- A python script playerOnRFID.py will intercept the fifo and will execute the commands using omxplayer
+
+
+     
+12- A bash script call playerOnRFID will start the rc522_reader and the playerOnRFID.oy script
+
+     
+
+13- A bash script call killplayer will terminate the rc522_reader and the playerOnRFID script
+
+N.B. put the python and the bash script on /usr/local/bin and made them executable
+
+    chmod +x playerONRFID.py
+    chmod +x playerONRFID
+    chmod +x killplayer
+ 
+    
+
